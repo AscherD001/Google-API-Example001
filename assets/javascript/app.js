@@ -43,7 +43,7 @@ function scope(data) {
 // geocode api request for lat lng of input field value
 function citySearch() {
 	var query = $(".searchInput").val();
-	var queryURL = "http://maps.googleapis.com/maps/api/geocode/json?address=" + query + "&sensor=false";
+	var queryURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + query + "&sensor=false";
 	$.get(queryURL, function(data) {
 		// holds lat and lng values
 		var loc = data.results[0].geometry.location;
