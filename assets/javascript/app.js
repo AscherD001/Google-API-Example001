@@ -1,6 +1,8 @@
 // API key
 var mapsKey = "AIzaSyCdasgXLKtxe1vhh8nU7KP3tgCYB8o2yZg";
 var map;
+var weather;
+var weaSave;
 var newMap = {
 	center: {lat: 35.2271, lng: -80.8431},
 	zoom: 8
@@ -50,6 +52,9 @@ function citySearch() {
 		// prepares the zoom level
 		var zLevel = scope(data);
 		updateMap(loc.lat, loc.lng, zLevel);
+		weather = "&lat=" + loc.lat + "&lon=" + loc.lng;
+		weatherSearch();
+		// enables CSE search off for testing
 		cseSearch(query);
 	});
 	// capatilizes the first letter and updates headline html
@@ -57,6 +62,7 @@ function citySearch() {
 	// clears the search box after submit
 	$(".searchInput").val("");
 }
+
 // loads the map into html after the page has loaded
 $("body").append($('<script class="customMap" async defer src="https://maps.googleapis.com/maps/api/js?key=' + mapsKey + '&callback=initMap"></script>'));
 // geocode api request for lat lng of input field value
@@ -82,7 +88,7 @@ function cseSearch(query) {
 		for(var i = 0; i < data.items.length; i ++) {
 			if(data.items[i].pagemap.cse_image) {
 				for(var j = 0; j < data.items[i].pagemap.cse_image.length; j ++) {
-					var temp = $("<div class='imgWrap col-xs-6'><img class='image col-xs-12' src='" + data.items[i].pagemap.cse_image[0].src + "'></div>");
+					var temp = $("<div class='imgWrap col-xs-12'><img class='image col-xs-12' src='" + data.items[i].pagemap.cse_image[0].src + "'></div>");
 					$(".display2").append(temp);
 				}
 			}
