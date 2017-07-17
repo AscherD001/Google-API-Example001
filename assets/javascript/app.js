@@ -1,8 +1,6 @@
 // API key
 var mapsKey = "AIzaSyCdasgXLKtxe1vhh8nU7KP3tgCYB8o2yZg";
 var map;
-var weather;
-var weaSave;
 var newMap = {
 	center: {lat: 35.2271, lng: -80.8431},
 	zoom: 8
@@ -52,8 +50,6 @@ function citySearch() {
 		// prepares the zoom level
 		var zLevel = scope(data);
 		updateMap(loc.lat, loc.lng, zLevel);
-		weather = "&lat=" + loc.lat + "&lon=" + loc.lng;
-		weatherSearch();
 		// enables CSE search off for testing
 		cseSearch(query);
 	});
@@ -82,7 +78,7 @@ function cseSearch(query) {
 	var queryURL = "https://www.googleapis.com/customsearch/v1?&key=" + cseKey + "&cx=" + SEid + "&q=" + query;
 	$.get(queryURL, function(data) {
 		$(".display2").empty();
-		console.log(data.items[0].pagemap.cse_image[0].src);
+		// console.log(data.items[0].pagemap.cse_image[0].src);
 		$("#banner").attr("background-image", "");
 		$("#banner").attr("style", "background-image: url('" + data.items[0].pagemap.cse_image[0].src + "')");
 		for(var i = 0; i < data.items.length; i ++) {
