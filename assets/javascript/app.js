@@ -58,7 +58,7 @@ function citySearch() {
 	$(".searchInput").val("");
 }
 // loads the map into html after the page has loaded
-$("body").append($('<script class="customMap" async defer src="https://maps.googleapis.com/maps/api/js?key=' + mapsKey + '&callback=initMap"></script>'));	
+$("body").append($('<script class="customMap" async defer src="https://maps.googleapis.com/maps/api/js?key=' + mapsKey + '&callback=initMap"></script>'));
 // geocode api request for lat lng of input field value
 $(".searchButton").on("click", citySearch);
 // allows for Enter key to submit input field value
@@ -69,17 +69,21 @@ $(".searchInput").keyup(function(event){
 });
 // CSE search for images temporarily
 function cseSearch(query) {
-	var cseKey = "AIzaSyDrufMCRtOuOdYgbTXT-piKR3A-hZb5YvU";
+	var cseKey = "AIzaSyBQWDimnA-AjyNZlXIsh_R3Ld8wYlAksfA";
+	// var cseKey = "AIzaSyDrufMCRtOuOdYgbTXT-piKR3A-hZb5YvU";
 	var SEid = "004303949972187002826:5vg83odxtam";
 	// var query = prompt("Enter a Search");
 	var queryURL = "https://www.googleapis.com/customsearch/v1?&key=" + cseKey + "&cx=" + SEid + "&q=" + query;
 	$.get(queryURL, function(data) {
-		$(".display").empty();
+		$(".display2").empty();
+		console.log(data.items[0].pagemap.cse_image[0].src);
+		$("#banner").attr("background-image", "");
+		$("#banner").attr("style", "background-image: url('" + data.items[0].pagemap.cse_image[0].src + "')");
 		for(var i = 0; i < data.items.length; i ++) {
 			if(data.items[i].pagemap.cse_image) {
 				for(var j = 0; j < data.items[i].pagemap.cse_image.length; j ++) {
 					var temp = $("<div class='imgWrap col-xs-6'><img class='image col-xs-12' src='" + data.items[i].pagemap.cse_image[0].src + "'></div>");
-					$(".display").append(temp);
+					$(".display2").append(temp);
 				}
 			}
 		}
