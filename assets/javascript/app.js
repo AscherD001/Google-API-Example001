@@ -1,14 +1,62 @@
 // API key
 var mapsKey = "AIzaSyCdasgXLKtxe1vhh8nU7KP3tgCYB8o2yZg";
-var map;
+var map, icon;
+var markers = [];
 var newMap = {
 	center: {lat: 35.2271, lng: -80.8431},
 	zoom: 8
 };
-
+function windowInfoCreate(marker, location, content) {
+	var info = {
+		content: content,
+		position: location
+	};
+	var infoWindow = new google.maps.InfoWindow(info);
+	google.maps.event.addListener(marker, "click", function() {
+		infoWindow.open(map);
+	});
+}
+function addMarker(location, place) {
+	icon = {
+	    url: "assets/images/markBear.png",
+	    scaledSize: new google.maps.Size(50, 50),
+	    origin: new google.maps.Point(0, 0),
+	    anchor: new google.maps.Point(25, 50)
+	}
+	var marker = new google.maps.Marker({
+	    position: location,
+	    map: map,
+	    icon: icon,
+	    animation: google.maps.Animation.DROP,
+	    clickable: true
+	});
+	markers.push(marker);
+	if(place) {
+		console.log(place);
+		var content = place.name + "<br>" + place.vicinity + "<br>" + place.types;
+		windowInfoCreate(marker, location, content);
+	}	
+}
+function searchPlaces(results, status) {
+	if(status == google.maps.places.PlacesServiceStatus.OK) {
+		for(var i = 0; i < results.length; i++) {
+			var place = results[i];
+			addMarker(place.geometry.location, place);
+		}
+	}
+}
+function addPlaces(latLng) {
+	var places = new google.maps.places.PlacesService(map);
+	var request = {
+		location: latLng,
+		radius: 16093.4,
+		types: ["food"]
+	};
+	places.nearbySearch(request, searchPlaces);
+}
 function initMap() {
   	map = new google.maps.Map(document.getElementById("map"), newMap);
-  	map.setClickableIcons(false);
+  	// map.setClickableIcons(true);
 }
 function updateMap(lat, lng, zLevel) {
   	var center = new google.maps.LatLng(lat, lng);
@@ -50,8 +98,10 @@ function citySearch() {
 		// prepares the zoom level
 		var zLevel = scope(data);
 		updateMap(loc.lat, loc.lng, zLevel);
+		var latLng = new google.maps.LatLng(loc.lat, loc.lng);
+		addPlaces(latLng);
 		// enables CSE search off for testing
-		cseSearch(query);
+		// cseSearch(query);
 	});
 	// capatilizes the first letter and updates headline html
 	$(".headline").html(query.charAt(0).toUpperCase() + query.slice(1));
@@ -59,8 +109,18 @@ function citySearch() {
 	$(".searchInput").val("");
 }
 
+// Sets the map on all markers in the array.
+function setMapOnAll(map) {
+	for (var i = 0; i < markers.length; i++) {
+	  markers[i].setMap(map);
+	}
+}
+// Removes the markers from the map, but keeps them in the array.
+function clearMarkers() {
+	setMapOnAll(null);
+}
 // loads the map into html after the page has loaded
-$("body").append($('<script class="customMap" async defer src="https://maps.googleapis.com/maps/api/js?key=' + mapsKey + '&callback=initMap"></script>'));
+$("body").append($('<script class="customMap" async defer src="https://maps.googleapis.com/maps/api/js?key=' + mapsKey + '&libraries=places&callback=initMap"></script>'));
 // geocode api request for lat lng of input field value
 $(".searchButton").on("click", citySearch);
 // allows for Enter key to submit input field value
@@ -75,10 +135,10 @@ function cseSearch(query) {
 	// var cseKey = "AIzaSyDrufMCRtOuOdYgbTXT-piKR3A-hZb5YvU";
 	var SEid = "004303949972187002826:5vg83odxtam";
 	// var query = prompt("Enter a Search");
-	var queryURL = "https://www.googleapis.com/customsearch/v1?&key=" + cseKey + "&cx=" + SEid + "&q=" + query;
+	var queryURL = "https://www.googleapis.com/customsearch/v1?&key=" + cseKey + "&cx=" + SEid + "&q=" + query + "+hotels";
 	$.get(queryURL, function(data) {
 		$(".display2").empty();
-		// console.log(data.items[0].pagemap.cse_image[0].src);
+		console.log(data);
 		$("#banner").attr("background-image", "");
 		$("#banner").attr("style", "background-image: url('" + data.items[0].pagemap.cse_image[0].src + "')");
 		for(var i = 0; i < data.items.length; i ++) {
@@ -91,3 +151,21 @@ function cseSearch(query) {
 		}
 	});	
 }
+
+// Old Code That May Be Useful
+
+// function addMarker(lat, lng) {
+// 	icon = {
+// 	    url: "assets/images/markBear.png",
+// 	    scaledSize: new google.maps.Size(50, 50),
+// 	    origin: new google.maps.Point(0, 0),
+// 	    anchor: new google.maps.Point(25, 50)
+// 	}
+// 	var marker = new google.maps.Marker({
+// 	    position: new google.maps.LatLng(lat, lng),
+// 	    map: map,
+// 	    icon: icon,
+// 	    animation: google.maps.Animation.DROP
+// 	});
+// 	markers.push(marker);
+// }
