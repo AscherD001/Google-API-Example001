@@ -2,6 +2,7 @@
 var mapsKey = "AIzaSyCdasgXLKtxe1vhh8nU7KP3tgCYB8o2yZg";
 var map, icon;
 var markers = [];
+var markerArr = [];
 var newMap = {
 	center: {lat: 35.2271, lng: -80.8431},
 	zoom: 8
@@ -16,40 +17,55 @@ function windowInfoCreate(marker, location, content) {
 		infoWindow.open(map);
 	});
 }
-function addMarker(location, place) {
+function addMarker() {
 	icon = {
 	    url: "assets/images/markBear.png",
 	    scaledSize: new google.maps.Size(50, 50),
 	    origin: new google.maps.Point(0, 0),
 	    anchor: new google.maps.Point(25, 50)
 	}
-	var marker = new google.maps.Marker({
-	    position: location,
-	    map: map,
-	    icon: icon,
-	    animation: google.maps.Animation.DROP,
-	    clickable: true
-	});
-	markers.push(marker);
-	if(place) {
-		console.log(place);
-		var content = place.name + "<br>" + place.vicinity + "<br>" + place.types;
-		windowInfoCreate(marker, location, content);
-	}	
+	var count = 10;
+	if(markers.length < 10) {
+		count = markers.length;
+	}
+	var displayMarkers = setInterval(function() {
+		count --;
+		var location = markers[count].geometry.location;
+		var marker = new google.maps.Marker({
+		    position: location,
+		    map: map,
+		    icon: icon,
+		    animation: google.maps.Animation.DROP,
+		    clickable: true
+		});
+		markerArr.push(marker);
+		if(markers[count]) {
+			console.log(markers[count]);
+			var content = markers[count].name + "<br>" + markers[count].vicinity + "<br>" + markers[count].types;
+			windowInfoCreate(marker, location, content);
+		}
+		if(count == 0) {
+			clearInterval(displayMarkers);
+		}
+		$(".display2").append($("<div class='itemDisplay'>" + markers[count].name + "</div>"))
+	}, 125);
+		
 }
 function searchPlaces(results, status) {
 	if(status == google.maps.places.PlacesServiceStatus.OK) {
 		for(var i = 0; i < results.length; i++) {
 			var place = results[i];
-			addMarker(place.geometry.location, place);
+			markers.push(place);
 		}
+		addMarker();
 	}
 }
 function addPlaces(latLng) {
 	var places = new google.maps.places.PlacesService(map);
+	// 1609.34 is one mile in meters
 	var request = {
 		location: latLng,
-		radius: 16093.4,
+		radius: 5000,
 		types: ["food"]
 	};
 	places.nearbySearch(request, searchPlaces);
@@ -63,40 +79,20 @@ function updateMap(lat, lng, zLevel) {
     map.panTo(center);
     map.setZoom(zLevel);
 }
-function scope(data) {
-	// Country
-	if(data.results[0].address_components.length === 1) {
-		var zLevel = 4;
-	// State
-	} else if(data.results[0].address_components.length === 2) {
-		var zLevel = 6;
-	// County
-	} else if(data.results[0].address_components.length === 3) {
-		var zLevel = 9;
-	// City
-	} else if(data.results[0].address_components.length === 5) {
-		var zLevel = 10;
-	// Street
-	} else if(data.results[0].address_components.length === 7) {
-		var zLevel = 14;
-	// Business
-	} else if(data.results[0].address_components.length === 10) {
-		var zLevel = 17;
-	// Default
-	} else {
-		var zLevel = 8;
-	}
-	return zLevel;
-}
 // geocode api request for lat lng of input field value
 function citySearch() {
+	$(".display2").empty();
+	clearMarkers();
+	markers = [];
+	markerArr = [];
 	var query = $(".searchInput").val();
 	var queryURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + query + "&sensor=false";
 	$.get(queryURL, function(data) {
 		// holds lat and lng values
 		var loc = data.results[0].geometry.location;
 		// prepares the zoom level
-		var zLevel = scope(data);
+		// var zLevel = scope(data);
+		var zLevel = 13;
 		updateMap(loc.lat, loc.lng, zLevel);
 		var latLng = new google.maps.LatLng(loc.lat, loc.lng);
 		addPlaces(latLng);
@@ -111,8 +107,8 @@ function citySearch() {
 
 // Sets the map on all markers in the array.
 function setMapOnAll(map) {
-	for (var i = 0; i < markers.length; i++) {
-	  markers[i].setMap(map);
+	for (var i = 0; i < markerArr.length; i++) {
+	  markerArr[i].setMap(map);
 	}
 }
 // Removes the markers from the map, but keeps them in the array.
@@ -129,7 +125,7 @@ $(".searchInput").keyup(function(event){
         $(".searchButton").click();
     }
 });
-// CSE search for images temporarily
+// CSE search for images temporarily disabled
 function cseSearch(query) {
 	var cseKey = "AIzaSyBQWDimnA-AjyNZlXIsh_R3Ld8wYlAksfA";
 	// var cseKey = "AIzaSyDrufMCRtOuOdYgbTXT-piKR3A-hZb5YvU";
@@ -153,6 +149,32 @@ function cseSearch(query) {
 }
 
 // Old Code That May Be Useful
+
+// function scope(data) {
+// 	// Country
+// 	if(data.results[0].address_components.length === 1) {
+// 		var zLevel = 4;
+// 	// State
+// 	} else if(data.results[0].address_components.length === 2) {
+// 		var zLevel = 6;
+// 	// County
+// 	} else if(data.results[0].address_components.length === 3) {
+// 		var zLevel = 9;
+// 	// City
+// 	} else if(data.results[0].address_components.length === 5) {
+// 		var zLevel = 10;
+// 	// Street
+// 	} else if(data.results[0].address_components.length === 7) {
+// 		var zLevel = 14;
+// 	// Business
+// 	} else if(data.results[0].address_components.length === 10) {
+// 		var zLevel = 17;
+// 	// Default
+// 	} else {
+// 		var zLevel = 8;
+// 	}
+// 	return zLevel;
+// }
 
 // function addMarker(lat, lng) {
 // 	icon = {
