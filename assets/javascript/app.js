@@ -1,8 +1,11 @@
 // API key
 var mapsKey = "AIzaSyCdasgXLKtxe1vhh8nU7KP3tgCYB8o2yZg";
-var map, icon;
+var map, icon, city, state, fullName;
 var markers = [];
 var markerArr = [];
+var events = [];
+var eventMarkers = [];
+var eventsMarkerArr = [];
 var newMap = {
 	center: {lat: 35.2271, lng: -80.8431},
 	zoom: 8
@@ -40,7 +43,7 @@ function addMarker() {
 		});
 		markerArr.push(marker);
 		if(markers[count]) {
-			console.log(markers[count]);
+			// console.log(markers[count]);
 			var content = markers[count].name + "<br>" + markers[count].vicinity + "<br>" + markers[count].types;
 			windowInfoCreate(marker, location, content);
 		}
@@ -51,58 +54,159 @@ function addMarker() {
 	}, 125);
 		
 }
+function addEventMarkers() {
+	icon = {
+	    url: "assets/images/markBear.png",
+	    scaledSize: new google.maps.Size(50, 50),
+	    origin: new google.maps.Point(0, 0),
+	    anchor: new google.maps.Point(25, 50)
+	}
+	var count = 10;
+	if(events.length < 10) {
+		count = events.length;
+	}
+	var displayMarkers = setInterval(function() {
+		count --;
+		// console.log(events);
+		// console.log(events[0].latitude);
+		var lat = events[count].latitude;
+		var lng = events[count].longitude;
+		var latLng = new google.maps.LatLng(lat, lng);
+		var marker = new google.maps.Marker({
+		    position: latLng,
+		    map: map,
+		    icon: icon,
+		    animation: google.maps.Animation.DROP,
+		    clickable: true
+		});
+		eventsMarkerArr.push(marker);
+		if(events[count]) {
+			// console.log(markers[count]);
+			var content = events[count].title; // + "<br>" + events[count].vicinity + "<br>" + events[count].types;
+			windowInfoCreate(marker, latLng, content);
+		}
+		if(count == 0) {
+			clearInterval(displayMarkers);
+		}
+		$(".display2").append($("<div class='itemDisplay'>" + events[count].title + "</div>"))
+	}, 125);
+}
 function searchPlaces(results, status) {
 	if(status == google.maps.places.PlacesServiceStatus.OK) {
 		for(var i = 0; i < results.length; i++) {
 			var place = results[i];
 			markers.push(place);
 		}
+		// var test = markers[0].photos[0].getUrl();
 		addMarker();
 	}
 }
+function addEvents() {
+	for(var i = 0; i < events.length; i ++) {
+		var place = events[i];
+		eventMarkers.push(place);
+	}
+
+}
 function addPlaces(latLng) {
 	var places = new google.maps.places.PlacesService(map);
+	console.log(places);
 	// 1609.34 is one mile in meters
 	var request = {
 		location: latLng,
 		radius: 5000,
-		types: ["food"]
+		types: ["lodging"]
 	};
 	places.nearbySearch(request, searchPlaces);
 }
 function initMap() {
   	map = new google.maps.Map(document.getElementById("map"), newMap);
-  	// map.setClickableIcons(true);
+  		var options = {
+  			types: ["(cities)"],
+  			componentRestrictions: {"country": "us"}
+  		};
+  	var input = document.getElementById("autocomplete");
+  	var autocomplete = new google.maps.places.Autocomplete(input, options);
+  	google.maps.event.addListener(autocomplete, 'place_changed', function () {
+    	fullName = autocomplete.getPlace().formatted_address;
+    	if(fullName) {
+    		citySearch();
+    	}
+    	
+	});
 }
 function updateMap(lat, lng, zLevel) {
   	var center = new google.maps.LatLng(lat, lng);
     map.panTo(center);
     map.setZoom(zLevel);
 }
+
 // geocode api request for lat lng of input field value
 function citySearch() {
 	$(".display2").empty();
 	clearMarkers();
 	markers = [];
 	markerArr = [];
-	var query = $(".searchInput").val();
+	var query = fullName;
 	var queryURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + query + "&sensor=false";
 	$.get(queryURL, function(data) {
 		// holds lat and lng values
 		var loc = data.results[0].geometry.location;
 		// prepares the zoom level
 		// var zLevel = scope(data);
+		// city level
 		var zLevel = 13;
+		// marker zoom
+		// var zLevel = 17;
 		updateMap(loc.lat, loc.lng, zLevel);
 		var latLng = new google.maps.LatLng(loc.lat, loc.lng);
 		addPlaces(latLng);
+		eventSearch(loc.lat, loc.lng);
+		city = data.results[0].address_components[0].long_name;
+		if(data.results[0].address_components.length >= 5) {
+			state = data.results[0].address_components[3].short_name;
+			if(data.results[0].address_components.length == 7){
+				state = data.results[0].address_components[4].short_name;
+			}
+		} else {
+			state = data.results[0].address_components[2].short_name
+		}
+		
+		// console.log("City: " + city + " State: " + state);
 		// enables CSE search off for testing
 		// cseSearch(query);
+		// capatilizes the first letter and updates headline html
+		$(".headline").html(city + ", " + state);
+		// clears the search box after submit
+		// $("#autocomplete").val("");
 	});
-	// capatilizes the first letter and updates headline html
-	$(".headline").html(query.charAt(0).toUpperCase() + query.slice(1));
-	// clears the search box after submit
-	$(".searchInput").val("");
+	
+}
+function eventSearch(lat, lng) {
+	var oArgs = { 
+    	app_key: "2pRpwC3ck9hKHFqh", 
+    	q:"music",
+    	// "35.2270869"+"," + "-80.8431267", - charlotte
+    	location: lat +"," + lng,
+    	within: 25,
+    	date: "This Week",
+    	// "All", "Future", "Past", "Today", "Last Week", "This Week", "Next week", and months by name
+    	// 'YYYYMMDD00-YYYYMMDD00', for example '2012042500-2012042700'; the last two digits of each date in this format are ignored. 
+    	sort_order: "popularity",
+    	sort_direction: "ascending",
+    	image_sizes: "small",
+    	page_size: 10
+    	//number of results per page
+    	// page_number: 1 
+    }; 
+    EVDB.API.call("/events/search", oArgs, function(data) { 
+    	var event = data.events.event;
+  		for(var i = 0; i < event.length; i++) {
+			var place = event[i];
+			events.push(place);
+		}
+		addEventMarkers();
+    });
 }
 
 // Sets the map on all markers in the array.
@@ -118,13 +222,13 @@ function clearMarkers() {
 // loads the map into html after the page has loaded
 $("body").append($('<script class="customMap" async defer src="https://maps.googleapis.com/maps/api/js?key=' + mapsKey + '&libraries=places&callback=initMap"></script>'));
 // geocode api request for lat lng of input field value
-$(".searchButton").on("click", citySearch);
+// $(".searchButton").on("click", citySearch);
 // allows for Enter key to submit input field value
-$(".searchInput").keyup(function(event){
-    if(event.keyCode == 13){
-        $(".searchButton").click();
-    }
-});
+// $("#autocomplete").keyup(function(event){
+//     if(event.keyCode == 13){
+//         $(".searchButton").click();
+//     }
+// });
 // CSE search for images temporarily disabled
 function cseSearch(query) {
 	var cseKey = "AIzaSyBQWDimnA-AjyNZlXIsh_R3Ld8wYlAksfA";
@@ -134,7 +238,6 @@ function cseSearch(query) {
 	var queryURL = "https://www.googleapis.com/customsearch/v1?&key=" + cseKey + "&cx=" + SEid + "&q=" + query + "+hotels";
 	$.get(queryURL, function(data) {
 		$(".display2").empty();
-		console.log(data);
 		$("#banner").attr("background-image", "");
 		$("#banner").attr("style", "background-image: url('" + data.items[0].pagemap.cse_image[0].src + "')");
 		for(var i = 0; i < data.items.length; i ++) {

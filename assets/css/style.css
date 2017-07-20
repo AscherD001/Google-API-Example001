@@ -27,16 +27,16 @@ html, body {
 	top: 0px;
 	left: 0px;
 }
-.inputAndButton {
+#autocomplete {
 	position: absolute;
 	width: 60%;
 	top: 445px;
 	left: 20%;
 	z-index: 500;
 }
-.searchInput {
+/*.searchInput {
 	text-transform: capitalize;
-}
+}*/
 .display {
 	height: 400px;
 	width: 80%;

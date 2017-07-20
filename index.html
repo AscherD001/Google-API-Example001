@@ -17,6 +17,8 @@
 	<link rel="stylesheet" type="text/css" href="assets/css/reset.css">
 	<link rel="stylesheet" type="text/css" href="assets/css/style.css">
 
+	<script type="text/javascript" src="https://api.eventful.com/js/api"></script>
+
 	<meta charset="UTF-8">
 	<title>Google Maps API Test001</title>
 </head>
@@ -25,14 +27,17 @@
 		<h1 class="headline col-lg-12">Charlotte</h1>
 	</div>
 
-  <div class="inputAndButton">
+  <!-- <div class="inputAndButton">
     <div class="input-group">
       <span class="input-group-btn">
         <button class="searchButton btn btn-default" type="button">Go!</button>
       </span>
-      <input type="text" class="searchInput form-control" placeholder="Search for...">
-    </div><!-- /input-group -->
-  </div>
+      <input type="input" class="searchInput form-control" placeholder="Search for...">
+    </div>
+  </div> -->
+  	<div id="locationField">
+    	<input id="autocomplete" placeholder="Enter a city" type="text" />
+    </div>
 	
 	<div id="banner">
 		<div class="weatherWrap col-xs-10">
